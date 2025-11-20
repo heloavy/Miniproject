@@ -162,7 +162,6 @@ export class NewsAPIFetcher extends NewsFetcher {
 
     try {
       // Check if article exists using external_id (URL)
-      console.log('🔍 Checking if article exists:', article.url);
       const { data: existing, error: existingError } = await this.supabase
         .from('articles')
         .select('id')
@@ -171,7 +170,6 @@ export class NewsAPIFetcher extends NewsFetcher {
 
       if (existingError) {
         console.error('❌ Error checking for existing article:', existingError);
-        // Continue with insert
       }
 
       if (existing) {
@@ -179,27 +177,67 @@ export class NewsAPIFetcher extends NewsFetcher {
         return null;
       }
 
-      // Prepare article data for database
-      // Prepare article data for database
-const articleData = {
-    external_id: article.url,
-    headline: article.headline || 'No title',  // Using headline instead of title
-    title: article.headline || 'No title',     // For backward compatibility
-    description: article.description || '',
-    content: article.content || article.description || '',
-    url: article.url,
-    image_url: article.imageUrl || null,
-    author: article.author || 'Unknown',
-    source_name: article.source || 'newsapi',
-    published_at: new Date(article.publishedAt).toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-};
+      // Resolve Source ID
+      let sourceId: number | null = null;
+      const sourceName = article.source || 'Unknown';
+      const sourceSlug = sourceName.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
-      // <<<--- REPLACEMENT STARTS HERE ---<<<
+      // 1. Try to find existing source
+      const { data: existingSource } = await this.supabase
+        .from('sources')
+        .select('id')
+        .or(`name.eq.${sourceName},source_id.eq.${sourceSlug}`)
+        .maybeSingle();
+
+      if (existingSource) {
+        sourceId = existingSource.id;
+      } else {
+        // 2. Create new source if not found
+        console.log(`🆕 Creating new source: ${sourceName}`);
+        const { data: newSource, error: sourceError } = await this.supabase
+          .from('sources')
+          .insert({
+            name: sourceName,
+            source_id: sourceSlug,
+            url: `https://${sourceSlug}.com`, // Placeholder
+            category: 'general',
+            language: 'en'
+          })
+          .select('id')
+          .single();
+
+        if (sourceError) {
+          console.error('❌ Error creating source:', sourceError);
+          // Fallback to default 'newsapi' source if creation fails
+          const { data: defaultSource } = await this.supabase
+            .from('sources')
+            .select('id')
+            .eq('source_id', 'newsapi')
+            .single();
+          sourceId = defaultSource?.id || null;
+        } else {
+          sourceId = newSource.id;
+        }
+      }
+
+      // Prepare article data for database
+      const articleData = {
+        external_id: article.url,
+        headline: article.headline || 'No title',
+        description: article.description || '',
+        content: article.content || article.description || '',
+        url: article.url,
+        image_url: article.imageUrl || null,
+        author: article.author || 'Unknown',
+        source_id: sourceId, // Use the resolved FK
+        published_at: new Date(article.publishedAt).toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
       console.log('📝 Inserting article data:', {
-        title: articleData.title,
-        source: articleData.source_name,
+        title: articleData.headline,
+        source_id: articleData.source_id,
         url: articleData.url
       });
 
@@ -218,7 +256,7 @@ const articleData = {
       console.log('✅ Successfully stored article with ID:', newArticle?.id);
       return {
         ...article,
-        id: newArticle.id.toString()  // Return the database ID
+        id: newArticle.id.toString()
       };
 
     } catch (error) {
@@ -234,10 +272,10 @@ const articleData = {
     }
 
     console.log(`\n🔍 Analyzing sentiment for article: ${articleId}`);
-    
+
     try {
       const textToAnalyze = (article.content || article.headline || article.description || '').substring(0, 1000);
-      
+
       if (!textToAnalyze) {
         console.log('⚠️ No text available for sentiment analysis');
         return;
@@ -245,10 +283,10 @@ const articleData = {
 
       // Import the sentiment analyzer
       const { analyzeSentiment } = await import('../../../lib/sentiment/fusion');
-      
+
       console.log('🧠 Analyzing sentiment...');
       const sentiment = await analyzeSentiment(textToAnalyze);
-      
+
       console.log('📊 Sentiment analysis result:', {
         vader: sentiment.vader ? '✅' : '❌',
         transformer: sentiment.transformer ? '✅' : '❌',
@@ -280,8 +318,8 @@ const articleData = {
       } else {
         console.log(`✅ Successfully stored sentiment score with ID: ${data?.id}`);
       }
-  } catch (error) {
-    console.error('❌ Error in analyzeAndStoreSentiment:', error);
+    } catch (error) {
+      console.error('❌ Error in analyzeAndStoreSentiment:', error);
+    }
   }
-}
 } // End of NewsAPIFetcher class

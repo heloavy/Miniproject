@@ -1,45 +1,46 @@
+
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config({ path: '.env.local' });
+const dotenv = require('dotenv');
+const { Client } = require('pg');
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Load env vars
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase credentials');
+  // process.exit(1); // Don't exit yet, maybe we have DATABASE_URL
+}
 
 async function runMigration() {
+  const migrationPath = path.join(__dirname, '../db/migrations/20241120000000_add_get_sentiment_stats.sql');
+  const sql = fs.readFileSync(migrationPath, 'utf8');
+
+  console.log('Running migration...');
+
+  if (!process.env.DATABASE_URL) {
+    console.error("DATABASE_URL not found in env.");
+    process.exit(1);
+  }
+
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+
   try {
-    console.log('Running migration...');
-    
-    // Read the SQL file
-    const sqlPath = path.join(__dirname, 'run-migration.sql');
-    const sql = fs.readFileSync(sqlPath, 'utf8');
-    
-    // Execute the SQL
-    const { data, error } = await supabase.rpc('exec_sql', { sql_query: sql });
-    
-    if (error) {
-      console.error('Migration failed:', error);
-      // Try direct SQL execution
-      console.log('Trying direct SQL execution...');
-      
-      // Split the SQL into individual statements
-      const statements = sql.split(';').filter(s => s.trim());
-      
-      for (const statement of statements) {
-        if (statement.trim()) {
-          console.log('Executing:', statement.substring(0, 100) + '...');
-          const { error: stmtError } = await supabase.from('_temp').select('*').limit(1);
-          // This won't work for DDL, so we need a different approach
-        }
-      }
-    } else {
-      console.log('Migration completed successfully!');
-    }
+    await client.connect();
+    await client.query(sql);
+    console.log('Migration executed successfully.');
   } catch (err) {
     console.error('Error running migration:', err);
+  } finally {
+    await client.end();
   }
 }
 

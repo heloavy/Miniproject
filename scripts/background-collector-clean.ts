@@ -1,6 +1,8 @@
 // scripts/background-collector-clean.ts
 import { createClient } from '@supabase/supabase-js';
 import { NewsAPIFetcher } from '../src/services/data-collection/fetchers/NewsAPIFetcher';
+import { RedditFetcher } from '../src/services/data-collection/fetchers/RedditFetcher';
+import { TwitterFetcher } from '../src/services/data-collection/fetchers/TwitterFetcher';
 import { SentimentService } from '../src/services/sentiment/sentiment.service';
 import dotenv from 'dotenv';
 
@@ -20,7 +22,13 @@ const supabase = createClient(
 );
 
 const sentimentService = new SentimentService(supabase);
-const fetcher = new NewsAPIFetcher(process.env.NEWS_API_KEY!, supabase);
+const newsAPIFetcher = new NewsAPIFetcher(process.env.NEWS_API_KEY!, supabase);
+const redditFetcher = new RedditFetcher('public', supabase);
+// Twitter disabled until valid token is configured
+const twitterFetcher = null;
+// const twitterFetcher = process.env.TWITTER_BEARER_TOKEN
+//   ? new TwitterFetcher(process.env.TWITTER_BEARER_TOKEN, supabase)
+//   : null;
 
 // Configuration
 const COLLECTION_INTERVAL = 15 * 60 * 1000; // 15 minutes
@@ -40,84 +48,43 @@ async function processPendingArticles() {
 
 async function fetchAndProcessNews() {
   try {
-    const articles = await fetcher.fetchNews({ 
-      q: 'technology OR finance OR business', 
-      pageSize: 20 
+    // 1. Fetch from NewsAPI
+    log('📰 Fetching from NewsAPI...');
+    const newsAPIArticles = await newsAPIFetcher.fetchNews({
+      q: 'technology OR finance OR business',
+      pageSize: 15
     });
-    
-    log(`📥 Fetched ${articles.length} new articles`);
-    
-    // Process articles in batches
-    for (let i = 0; i < articles.length; i += BATCH_SIZE) {
-      const batch = articles.slice(i, i + BATCH_SIZE);
-      await Promise.all(batch.map(article => processArticle(article)));
-    }
+    log(`📥 NewsAPI: ${newsAPIArticles.length} articles`);
+
+    // 2. Fetch from Reddit
+    log('👽 Fetching from Reddit...');
+    const redditArticles = await redditFetcher.fetchNews({
+      subreddit: 'technology',
+      limit: 10
+    });
+    log(`📥 Reddit: ${redditArticles.length} posts`);
+
+    const totalArticles = newsAPIArticles.length + redditArticles.length;
+    log(`✅ Total collected: ${totalArticles} items from all sources`);
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     log(`❌ Error fetching news: ${errorMessage}`);
   }
 }
 
-async function processArticle(article: any) {
-  try {
-    // Check if article exists
-    const { data: existing } = await supabase
-      .from('articles')
-      .select('id, sentiment_score')
-      .eq('url', article.url)
-      .single();
-
-    if (existing) {
-      // Update if no sentiment analysis yet
-      if (existing.sentiment_score === null) {
-        await sentimentService.analyzeArticle(existing);
-      }
-      return;
-    }
-
-    // Insert new article
-    const { data: newArticle, error } = await supabase
-      .from('articles')
-      .insert([{
-        title: article.title,
-        description: article.description,
-        content: article.content,
-        url: article.url,
-        published_at: article.publishedAt || new Date().toISOString(),
-        source: article.source?.name || 'unknown',
-        image_url: article.urlToImage,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    // Analyze sentiment for new article
-    if (newArticle) {
-      await sentimentService.analyzeArticle(newArticle);
-      log(`✅ Processed: ${article.title.substring(0, 60)}...`);
-    }
-    
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    log(`❌ Error processing article: ${errorMessage}`);
-  }
-}
-
 async function runCollector() {
   log('🚀 Starting news collection and sentiment analysis...');
-  
+
   try {
     // 1. Process any pending articles first
     log('🔄 Checking for unprocessed articles...');
     await processPendingArticles();
-    
+
     // 2. Fetch new articles
     log('📰 Fetching latest news...');
     await fetchAndProcessNews();
-    
+
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     log(`❌ Error in collector: ${errorMessage}`);
