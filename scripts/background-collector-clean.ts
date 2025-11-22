@@ -24,11 +24,9 @@ const supabase = createClient(
 const sentimentService = new SentimentService(supabase);
 const newsAPIFetcher = new NewsAPIFetcher(process.env.NEWS_API_KEY!, supabase);
 const redditFetcher = new RedditFetcher('public', supabase);
-// Twitter disabled until valid token is configured
-const twitterFetcher = null;
-// const twitterFetcher = process.env.TWITTER_BEARER_TOKEN
-//   ? new TwitterFetcher(process.env.TWITTER_BEARER_TOKEN, supabase)
-//   : null;
+const twitterFetcher = process.env.TWITTER_BEARER_TOKEN
+  ? new TwitterFetcher(process.env.TWITTER_BEARER_TOKEN, supabase)
+  : null;
 
 // Configuration
 const COLLECTION_INTERVAL = 15 * 60 * 1000; // 15 minutes
@@ -64,7 +62,20 @@ async function fetchAndProcessNews() {
     });
     log(`📥 Reddit: ${redditArticles.length} posts`);
 
-    const totalArticles = newsAPIArticles.length + redditArticles.length;
+    // 3. Fetch from Twitter (if configured)
+    let twitterArticles: any[] = [];
+    if (twitterFetcher) {
+      log('🐦 Fetching from Twitter...');
+      twitterArticles = await twitterFetcher.fetchNews({
+        q: 'technology OR AI OR crypto OR finance',
+        maxResults: 10
+      });
+      log(`📥 Twitter: ${twitterArticles.length} tweets`);
+    } else {
+      log('⚠️ Twitter disabled: Add TWITTER_BEARER_TOKEN to .env to enable');
+    }
+
+    const totalArticles = newsAPIArticles.length + redditArticles.length + twitterArticles.length;
     log(`✅ Total collected: ${totalArticles} items from all sources`);
 
   } catch (error) {

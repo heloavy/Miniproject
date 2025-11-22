@@ -763,12 +763,47 @@ export default function DashboardShell() {
     sendChatMessage(question);
   };
 
-  const overviewCards = [
-    { label: 'Overall Sentiment', value: sentimentStats.overall.toFixed(2), trend: '12.5%', sentimentClass: 'positive' },
-    { label: 'Positive Articles', value: sentimentStats.positive, trend: '8.3%', sentimentClass: 'positive' },
-    { label: 'Negative Articles', value: sentimentStats.negative, trend: '3.2%', sentimentClass: 'negative' },
-    { label: 'Neutral Articles', value: sentimentStats.neutral, trend: '1.1%', sentimentClass: 'neutral' },
-  ];
+  const overviewCards = useMemo(() => {
+    const total = sentimentStats.positive + sentimentStats.negative + sentimentStats.neutral;
+    const positivePercent = total > 0 ? ((sentimentStats.positive / total) * 100).toFixed(1) : '0.0';
+    const negativePercent = total > 0 ? ((sentimentStats.negative / total) * 100).toFixed(1) : '0.0';
+    const neutralPercent = total > 0 ? ((sentimentStats.neutral / total) * 100).toFixed(1) : '0.0';
+
+    // Calculate sentiment balance for Overall Sentiment card
+    const sentimentBalance = sentimentStats.positive - sentimentStats.negative;
+    const balanceText = sentimentBalance > 0
+      ? `+${sentimentBalance} more positive`
+      : sentimentBalance < 0
+        ? `${Math.abs(sentimentBalance)} more negative`
+        : 'Balanced';
+
+    return [
+      {
+        label: 'Overall Sentiment',
+        value: sentimentStats.overall.toFixed(2),
+        trend: balanceText,
+        sentimentClass: sentimentStats.overall > 0 ? 'positive' : sentimentStats.overall < 0 ? 'negative' : 'neutral'
+      },
+      {
+        label: 'Positive Articles',
+        value: sentimentStats.positive,
+        trend: `${positivePercent}%`,
+        sentimentClass: 'positive'
+      },
+      {
+        label: 'Negative Articles',
+        value: sentimentStats.negative,
+        trend: `${negativePercent}%`,
+        sentimentClass: 'negative'
+      },
+      {
+        label: 'Neutral Articles',
+        value: sentimentStats.neutral,
+        trend: `${neutralPercent}%`,
+        sentimentClass: 'neutral'
+      },
+    ];
+  }, [sentimentStats]);
 
   const renderViewClass = (view: View) => `view ${currentView === view ? 'active' : ''}`;
 
@@ -1056,36 +1091,22 @@ export default function DashboardShell() {
                         key={country.country}
                         className={`heatmap-item ${getHeatmapClass(country.average)}`}
                         title={`${country.country}: ${country.count} articles, avg sentiment ${country.average.toFixed(2)}`}
-                        style={{
-                          borderLeft: `4px solid ${country.average > 0.1 ? '#16a34a' :
-                            country.average < -0.1 ? '#dc2626' : '#f59e0b'
-                            }`
-                        }}
                       >
-                        <div className="country-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                          <div className="country-name" style={{ fontSize: '1rem', fontWeight: '600' }}>
+                        <div className="country-header">
+                          <div className="country-name">
                             {country.country}
                           </div>
-                          <div className="country-sentiment" style={{
-                            fontSize: '1.1rem',
-                            fontWeight: '700',
-                            color: country.average > 0.1 ? '#16a34a' : country.average < -0.1 ? '#dc2626' : '#f59e0b'
-                          }}>
+                          <div className="country-sentiment">
                             {getTrendArrow(country.average)} {country.average.toFixed(2)}
                           </div>
                         </div>
-                        <div className="entity-stats" style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+                        <div className="entity-stats">
                           📰 {country.count} articles
                         </div>
-                        <div className="sentiment-breakdown" style={{
-                          display: 'flex',
-                          gap: '0.5rem',
-                          marginTop: '0.5rem',
-                          fontSize: '0.8rem'
-                        }}>
-                          <span style={{ color: '#16a34a' }}>✓ {country.positivePercent}%</span>
-                          <span style={{ color: '#dc2626' }}>✗ {country.negativePercent}%</span>
-                          <span style={{ color: '#f59e0b' }}>− {country.neutralPercent}%</span>
+                        <div className="sentiment-breakdown">
+                          <span className="breakdown-item pos">✓ {country.positivePercent}%</span>
+                          <span className="breakdown-item neg">✗ {country.negativePercent}%</span>
+                          <span className="breakdown-item neu">− {country.neutralPercent}%</span>
                         </div>
                       </div>
                     ))

@@ -99,13 +99,17 @@ export async function POST(req: NextRequest) {
             max_tokens: 1024,
         });
 
-        // Calculate aggregated sentiment
+        // Calculate aggregated sentiment from top relevant articles only
         let sentimentLabel = 'neutral';
         if (articles && articles.length > 0) {
-            const totalScore = articles.reduce((sum: number, a: any) => sum + (a.sentiment_scores?.final_score || 0), 0);
-            const avgScore = totalScore / articles.length;
-            if (avgScore > 0.15) sentimentLabel = 'positive';
-            else if (avgScore < -0.15) sentimentLabel = 'negative';
+            // Use only top 5 most relevant articles for sentiment (they appear first in results)
+            const topArticles = articles.slice(0, 5);
+            const totalScore = topArticles.reduce((sum: number, a: any) => sum + (a.sentiment_scores?.final_score || 0), 0);
+            const avgScore = totalScore / topArticles.length;
+
+            // More lenient thresholds for better accuracy
+            if (avgScore > 0.1) sentimentLabel = 'positive';
+            else if (avgScore < -0.1) sentimentLabel = 'negative';
         }
 
         const responseMessage = completion.choices[0]?.message?.content || "I couldn't generate a response.";
