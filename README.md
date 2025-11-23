@@ -1,17 +1,78 @@
-**Advanced Sentiment Analytics Platform*
-*
-This project is a comprehensive sentiment analysis dashboard designed for Small and Medium-sized Enterprises (SMEs). Built on Next.js, this application leverages advanced AI models to provide real-time insights into market trends, brand perception, and global sentiment.
+# Advanced Sentiment Analytics Platform
+This project is a comprehensive sentiment analysis dashboard, purpose-built for Small and Medium-sized Enterprises (SMEs). Developed using Next.js, the platform harnesses advanced AI models to deliver real-time insights into market trends, brand perception, and global sentiment. By integrating robust backend services through Supabase and high-performance AI inferences via Groq, This project transforms raw data from social platforms (Reddit, Twitter/X) and news sources into actionable business intelligence.
+## 🚀 Key Features
+### 📊 Advanced Sentiment Analytics
+- **Multi-Model Analysis:** Utilizes three distinct AI models—Fusion, VADER, and DistilBERT—for consensus-driven, high-accuracy sentiment scoring.
+- **Real-Time Trends:** Dynamic charts and visualizations display live sentiment shifts.
 
-By integrating robust backend services via Supabase and high-performance AI inference through Groq, this project transforms raw data from social platforms (primarily Reddit and Twitter) and news sources into actionable business intelligence.
+### 🌍 Geographic & Entity Intelligence
+- **Regional Breakdown:** Offers detailed sentiment reports across global markets such as Global, India, China, Indonesia, Canada, and Brazil.
+- **Trending Entities:** Dedicated tracking for high-impact topics and organizations (e.g., AI, US, Nvidia, Google, China, OpenAI).
 
-**Key Features
-**
-<u>📊 Advanced Sentiment Analytics</u>
+### 🤖 AI-Powered Assistance
+- **AI Sentiment Assistant:** Integrated chatbot to answer queries about trends and provide instant data analysis.
 
-- _Multi-Model Analysis:_ Utilizes a consensus of three distinct AI models—Fusion, VADER, and DistilBERT—to ensure high-accuracy sentiment scoring.
-- _Real-Time Trends:_ Dynamic charts and visualizations that track sentiment shifts as they happen.
+### 🔍 Granular Control
+- **Comprehensive Filtering:** Refine data by date range, source (Reddit, News, etc.), and sentiment type to isolate specific metrics.
 
-<u>🌍 Geographic & Entity Intelligence</u>
+## 🛠️ Technology Stack
+- **Frontend:** Next.js (App Router), Tailwind CSS, Geist Font
+- **Backend & Auth:** Supabase
+- **AI & Inference:** Groq API
+- **Data Sources:** Reddit, News API, Twitter/X
 
-- _Regional Breakdown_: detailed sentiment analysis across key global markets including Global, India, China, Indonesia, Canada, and Brazil.
-- _Trending Entities_: dedicated tracking for high-impact topics and organizations such as AI, US, Nvidia, Google, China, and OpenAI.
+## ⚙️ Environment Configuration
+Create the environment file:
+```bash
+cp .env.example .env.local
+```
+Set the following variables in `.env.local`:
+
+| Variable                     | Description                                     |
+| ----------------------------|------------------------------------------------|
+| NEXT_PUBLIC_SUPABASE_URL     | Your Supabase Project URL.                      |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY| Your Supabase Anonymous Public Key.            |
+| NEWS_API_KEY                 | API key from NewsAPI.org                        |
+| TWITTER_BEARER_TOKEN         | Bearer Token from X (Twitter) Developer Portal |
+| GROQ_API_KEY                 | API Key for Groq AI inference                   |
+
+Example:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-key
+NEWS_API_KEY=your-news-api-key
+TWITTER_BEARER_TOKEN=your-twitter-token
+GROQ_API_KEY=your-groq-key
+```
+## 💻 Getting Started
+Clone the repository:
+```bash
+git clone  https://github.com/heloavy/Miniproject.git
+cd Miniproject
+```
+Install dependencies:
+```bash
+npm install
+or
+yarn install
+or
+pnpm install
+or
+bun install
+```
+Run the development server:
+```bash
+npm run dev:with-collector
+```
+
+Access the Dashboard at: [http://localhost:3001](http://localhost:3001)
+## 📸 Snapshots
+<img width="1908" height="935" alt="image" src="https://github.com/user-attachments/assets/d852efeb-f732-4594-b32b-01aeccd37fe2" />
+
+  
+## 📚 Documentation & Resources
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Groq AI Documentation](https://console.groq.com/docs/quickstart)
+---
+© 2025 This project Analytics. All Rights Reserved.
