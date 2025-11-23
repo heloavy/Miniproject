@@ -67,9 +67,13 @@ npm run dev:with-collector
 
 Access the Dashboard at: [http://localhost:3001](http://localhost:3001)
 ## 📸 Snapshots
-<img width="1908" height="935" alt="image" src="https://github.com/user-attachments/assets/d852efeb-f732-4594-b32b-01aeccd37fe2" />
+- # Dashboard
+  <img width="1908" height="935" alt="image" src="https://github.com/user-attachments/assets/d852efeb-f732-4594-b32b-01aeccd37fe2" />
+- # Analytics
+  <img width="1904" height="939" alt="image" src="https://github.com/user-attachments/assets/ba02f629-f3d7-4398-addf-e1f3b32b5a02" />
+- # Chatbot
+  <img width="687" height="945" alt="image" src="https://github.com/user-attachments/assets/0d81f11c-87b9-4ea3-8036-8aaa72c721b5" />
 
-  
 ## 📚 Documentation & Resources
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Supabase Documentation](https://supabase.com/docs)
