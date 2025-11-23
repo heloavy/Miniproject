@@ -1,36 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+**Advanced Sentiment Analytics Platform*
+*
+This project is a comprehensive sentiment analysis dashboard designed for Small and Medium-sized Enterprises (SMEs). Built on Next.js, this application leverages advanced AI models to provide real-time insights into market trends, brand perception, and global sentiment.
 
-## Getting Started
+By integrating robust backend services via Supabase and high-performance AI inference through Groq, this project transforms raw data from social platforms (primarily Reddit and Twitter) and news sources into actionable business intelligence.
 
-First, run the development server:
+**Key Features
+**
+<u>📊 Advanced Sentiment Analytics</u>
 
-```bash
-npm run dev:with-collector
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- _Multi-Model Analysis:_ Utilizes a consensus of three distinct AI models—Fusion, VADER, and DistilBERT—to ensure high-accuracy sentiment scoring.
+- _Real-Time Trends:_ Dynamic charts and visualizations that track sentiment shifts as they happen.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<u>🌍 Geographic & Entity Intelligence</u>
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- _Regional Breakdown_: detailed sentiment analysis across key global markets including Global, India, China, Indonesia, Canada, and Brazil.
+- _Trending Entities_: dedicated tracking for high-impact topics and organizations such as AI, US, Nvidia, Google, China, and OpenAI.
